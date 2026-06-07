@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Copa2026 Mobile Edition</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    overflow:hidden;
+    background:#0b7d29;
+    touch-action:manipulation;
+}
+
+#game{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    overflow:hidden;
+    background:
+    linear-gradient(
+        to bottom,
+        #16a34a,
+        #0b7d29
+    );
+}
+
+#hud{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:80px;
+    background:rgba(0,0,0,.55);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px;
+    color:white;
+    z-index:100;
+}
+
+#timer{
+    font-size:28px;
+    font-weight:bold;
+}
+
+#target{
+    font-size:28px;
+    font-weight:bold;
+    color:#ffd60a;
+}
+
+#score{
+    font-size:20px;
+}
+
+#mascot{
+    position:absolute;
+    width:70px;
+    height:70px;
+    left:50%;
+    bottom:30px;
+    transform:translateX(-50%);
+    font-size:58px;
+    z-index:50;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.ball{
+    position:absolute;
+    width:58px;
+    height:58px;
+    border-radius:50%;
+    background:white;
+    border:3px solid #222;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:26px;
+    font-weight:bold;
+    user-select:none;
+}
+
+#message{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,.9);
+    color:white;
+    display:none;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    z-index:999;
+}
+
+#message h1{
+    font-size:42px;
+    margin-bottom:20px;
+    text-align:center;
+}
+
+#message button{
+    padding:15px 30px;
+    border:none;
+    border-radius:10px;
+    font-size:22px;
+}
+</style>
+</head>
+<body>
+
+<div id="game">
+
+    <div id="hud">
+        <div id="timer">02:30</div>
+        <div id="target">??</div>
+        <div id="score">0/10</div>
+    </div>
+
+    <div id="mascot">🏃</div>
+
+    <div id="message">
+        <h1 id="resultText"></h1>
+        <button onclick="location.reload()">
+            Jogar Novamente
+        </button>
+    </div>
+
+</div>
+
+<script>
+
+const game = document.getElementById("game");
+const mascot = document.getElementById("mascot");
+const timerEl = document.getElementById("timer");
+const targetEl = document.getElementById("target");
+const scoreEl = document.getElementById("score");
+
+let balls = [];
+
+let mascotX = window.innerWidth/2;
+let mascotY = window.innerHeight-120;
+
+let targetBall = null;
+let moving = false;
+
+let dezenasConcluidas = 0;
+
+let dezenaAtual = gerarDezena();
+let etapa = 0;
+
+function gerarDezena(){
+
+    let a = Math.floor(Math.random()*10);
+    let b = Math.floor(Math.random()*10);
+
+    targetEl.innerText = a + "" + b;
+
+    return [a,b];
+}
+
+function criarBola(){
+
+    const bola = document.createElement("div");
+
+    bola.className = "ball";
+
+    bola.numero = Math.floor(Math.random()*10);
+
+    bola.innerText = bola.numero;
+
+    bola.x =
+        Math.random() *
+        (window.innerWidth - 60);
+
+    bola.y = -70;
+
+    bola.vel =
+        2 + Math.random()*3;
+
+    bola.style.left = bola.x + "px";
+    bola.style.top = bola.y + "px";
+
+    bola.addEventListener("click",()=>{
+
+        const numeroNecessario =
+        dezenaAtual[etapa];
+
+        if(bola.numero !== numeroNecessario)
+            return;
+
+        targetBall = bola;
+        moving = true;
+    });
+
+    game.appendChild(bola);
+    balls.push(bola);
+}
+
+setInterval(criarBola,700);
+
+function atualizarBolas(){
+
+    for(let i=balls.length-1;i>=0;i--){
+
+        const b = balls[i];
+
+        b.y += b.vel;
+
+        b.style.top = b.y + "px";
+
+        if(b.y > window.innerHeight+80){
+
+            b.remove();
+            balls.splice(i,1);
+        }
+    }
+}
+
+function atualizarMascote(){
+
+    if(moving && targetBall){
+
+        let dx =
+        targetBall.x - mascotX;
+
+        let dy =
+        targetBall.y - mascotY;
+
+        let dist =
+        Math.sqrt(dx*dx + dy*dy);
+
+        if(dist < 25){
+
+            capturar(targetBall);
+
+            moving = false;
+            targetBall = null;
+
+        }else{
+
+            mascotX += dx*0.08;
+            mascotY += dy*0.08;
+        }
+    }
+
+    mascot.style.left =
+    mascotX + "px";
+
+    mascot.style.top =
+    mascotY + "px";
+}
+
+function capturar(bola){
+
+    bola.remove();
+
+    const idx =
+    balls.indexOf(bola);
+
+    if(idx > -1)
+        balls.splice(idx,1);
+
+    etapa++;
+
+    if(etapa >= 2){
+
+        dezenasConcluidas++;
+
+        scoreEl.innerText =
+        dezenasConcluidas + "/10";
+
+        etapa = 0;
+
+        if(dezenasConcluidas >= 10){
+
+            fim("🏆 VITÓRIA!");
+            return;
+        }
+
+        dezenaAtual =
+        gerarDezena();
+    }
+}
+
+function loop(){
+
+    atualizarBolas();
+    atualizarMascote();
+
+    requestAnimationFrame(loop);
+}
+
+loop();
+
+let tempo = 150;
+
+function atualizarTempo(){
+
+    let m =
+    Math.floor(tempo/60);
+
+    let s =
+    tempo%60;
+
+    timerEl.innerText =
+    String(m).padStart(2,"0")
+    + ":" +
+    String(s).padStart(2,"0");
+
+    if(tempo <= 0){
+
+        fim("⏰ TEMPO ESGOTADO");
+        return;
+    }
+
+    tempo--;
+}
+
+function fim(texto){
+
+    document.getElementById("resultText")
+    .innerText = texto;
+
+    document.getElementById("message")
+    .style.display = "flex";
+}
+
+atualizarTempo();
+setInterval(atualizarTempo,1000);
+
+</script>
+
+</body>
+</html>
