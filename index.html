@@ -2,15 +2,17 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
 <title>Copa2026 Mobile Edition</title>
 
 <style>
+
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Arial,sans-serif;
+    font-family:Arial, sans-serif;
 }
 
 body{
@@ -20,10 +22,11 @@ body{
 }
 
 #game{
-    position:relative;
     width:100vw;
     height:100vh;
+    position:relative;
     overflow:hidden;
+
     background:
     linear-gradient(
         to bottom,
@@ -38,11 +41,15 @@ body{
     left:0;
     width:100%;
     height:80px;
+
     background:rgba(0,0,0,.55);
+
     display:flex;
     justify-content:space-between;
     align-items:center;
+
     padding:10px;
+
     color:white;
     z-index:100;
 }
@@ -53,68 +60,104 @@ body{
 }
 
 #target{
-    font-size:28px;
-    font-weight:bold;
+    font-size:30px;
     color:#ffd60a;
+    font-weight:bold;
 }
 
 #score{
-    font-size:20px;
+    font-size:22px;
+}
+
+#progress{
+    position:absolute;
+    top:85px;
+    width:100%;
+    text-align:center;
+    color:white;
+    font-size:32px;
+    font-weight:bold;
+    z-index:100;
 }
 
 #mascot{
     position:absolute;
     width:70px;
     height:70px;
+
     left:50%;
     bottom:30px;
+
     transform:translateX(-50%);
-    font-size:58px;
-    z-index:50;
+
     display:flex;
     justify-content:center;
     align-items:center;
+
+    font-size:58px;
+
+    z-index:50;
+
+    pointer-events:none;
 }
 
 .ball{
+
     position:absolute;
+
     width:58px;
     height:58px;
+
     border-radius:50%;
+
     background:white;
+
     border:3px solid #222;
+
     display:flex;
     justify-content:center;
     align-items:center;
+
     font-size:26px;
     font-weight:bold;
+
     user-select:none;
 }
 
 #message{
+
     position:absolute;
     inset:0;
-    background:rgba(0,0,0,.9);
-    color:white;
+
+    background:rgba(0,0,0,.92);
+
     display:none;
+
     justify-content:center;
     align-items:center;
     flex-direction:column;
+
+    color:white;
+
     z-index:999;
 }
 
 #message h1{
     font-size:42px;
     margin-bottom:20px;
-    text-align:center;
 }
 
 #message button{
-    padding:15px 30px;
+
     border:none;
+
     border-radius:10px;
+
+    padding:15px 30px;
+
     font-size:22px;
 }
+
 </style>
 </head>
 <body>
@@ -122,18 +165,27 @@ body{
 <div id="game">
 
     <div id="hud">
+
         <div id="timer">02:30</div>
-        <div id="target">??</div>
+
+        <div id="target">00</div>
+
         <div id="score">0/10</div>
+
     </div>
+
+    <div id="progress">_ _</div>
 
     <div id="mascot">🏃</div>
 
     <div id="message">
+
         <h1 id="resultText"></h1>
+
         <button onclick="location.reload()">
             Jogar Novamente
         </button>
+
     </div>
 
 </div>
@@ -142,68 +194,89 @@ body{
 
 const game = document.getElementById("game");
 const mascot = document.getElementById("mascot");
-const timerEl = document.getElementById("timer");
-const targetEl = document.getElementById("target");
-const scoreEl = document.getElementById("score");
 
-let balls = [];
+const timerEl = document.getElementById("timer");
+const scoreEl = document.getElementById("score");
+const targetEl = document.getElementById("target");
+const progressEl = document.getElementById("progress");
+
+let balls=[];
 
 let mascotX = window.innerWidth/2;
 let mascotY = window.innerHeight-120;
 
-let targetBall = null;
-let moving = false;
+let targetBall=null;
+let moving=false;
 
-let dezenasConcluidas = 0;
+let etapa=0;
 
-let dezenaAtual = gerarDezena();
-let etapa = 0;
+let dezenasConcluidas=0;
 
-function gerarDezena(){
+let dezenaAtual;
 
-    let a = Math.floor(Math.random()*10);
-    let b = Math.floor(Math.random()*10);
+function novaDezena(){
 
-    targetEl.innerText = a + "" + b;
+    let a=Math.floor(Math.random()*10);
+    let b=Math.floor(Math.random()*10);
 
-    return [a,b];
+    dezenaAtual=[a,b];
+
+    targetEl.innerText=a+""+b;
+
+    atualizarPainel();
 }
+
+function atualizarPainel(){
+
+    let txt="";
+
+    for(let i=0;i<2;i++){
+
+        if(i<etapa)
+            txt+=dezenaAtual[i]+" ";
+
+        else
+            txt+="_ ";
+    }
+
+    progressEl.innerText=txt;
+}
+
+novaDezena();
 
 function criarBola(){
 
-    const bola = document.createElement("div");
+    const bola=document.createElement("div");
 
-    bola.className = "ball";
+    bola.className="ball";
 
-    bola.numero = Math.floor(Math.random()*10);
+    bola.numero=Math.floor(Math.random()*10);
 
-    bola.innerText = bola.numero;
+    bola.innerText=bola.numero;
 
-    bola.x =
-        Math.random() *
-        (window.innerWidth - 60);
+    bola.x=Math.random()*(window.innerWidth-60);
 
-    bola.y = -70;
+    bola.y=-70;
 
-    bola.vel =
-        2 + Math.random()*3;
+    bola.vel=2+Math.random()*3;
 
-    bola.style.left = bola.x + "px";
-    bola.style.top = bola.y + "px";
+    bola.style.left=bola.x+"px";
+    bola.style.top=bola.y+"px";
 
-    bola.addEventListener("click",()=>{
+    bola.addEventListener("pointerdown",()=>{
 
-        const numeroNecessario =
+        const numeroEsperado=
         dezenaAtual[etapa];
 
-        if(bola.numero !== numeroNecessario)
+        if(bola.numero!==numeroEsperado)
             return;
 
-        targetBall = bola;
-        moving = true;
+        targetBall=bola;
+        moving=true;
     });
 
     game.appendChild(bola);
+
     balls.push(bola);
 }
 
@@ -213,15 +286,16 @@ function atualizarBolas(){
 
     for(let i=balls.length-1;i>=0;i--){
 
-        const b = balls[i];
+        const b=balls[i];
 
-        b.y += b.vel;
+        b.y+=b.vel;
 
-        b.style.top = b.y + "px";
+        b.style.top=b.y+"px";
 
-        if(b.y > window.innerHeight+80){
+        if(b.y>window.innerHeight+80){
 
             b.remove();
+
             balls.splice(i,1);
         }
     }
@@ -231,71 +305,79 @@ function atualizarMascote(){
 
     if(moving && targetBall){
 
-        let dx =
-        targetBall.x - mascotX;
+        if(!document.body.contains(targetBall)){
 
-        let dy =
-        targetBall.y - mascotY;
+            moving=false;
+            targetBall=null;
+            return;
+        }
 
-        let dist =
-        Math.sqrt(dx*dx + dy*dy);
+        const alvoX=
+        parseFloat(targetBall.style.left);
 
-        if(dist < 25){
+        const alvoY=
+        parseFloat(targetBall.style.top);
+
+        let dx=alvoX-mascotX;
+        let dy=alvoY-mascotY;
+
+        let dist=
+        Math.sqrt(dx*dx+dy*dy);
+
+        if(dist<35){
 
             capturar(targetBall);
 
-            moving = false;
-            targetBall = null;
+            moving=false;
+            targetBall=null;
+        }
+        else{
 
-        }else{
-
-            mascotX += dx*0.08;
-            mascotY += dy*0.08;
+            mascotX+=dx*0.18;
+            mascotY+=dy*0.18;
         }
     }
 
-    mascot.style.left =
-    mascotX + "px";
-
-    mascot.style.top =
-    mascotY + "px";
+    mascot.style.left=mascotX+"px";
+    mascot.style.top=mascotY+"px";
 }
 
 function capturar(bola){
 
     bola.remove();
 
-    const idx =
-    balls.indexOf(bola);
+    const idx=balls.indexOf(bola);
 
-    if(idx > -1)
+    if(idx>-1)
         balls.splice(idx,1);
 
     etapa++;
 
-    if(etapa >= 2){
+    atualizarPainel();
+
+    if(etapa>=2){
 
         dezenasConcluidas++;
 
-        scoreEl.innerText =
-        dezenasConcluidas + "/10";
+        scoreEl.innerText=
+        dezenasConcluidas+"/10";
 
-        etapa = 0;
+        etapa=0;
 
-        if(dezenasConcluidas >= 10){
+        if(dezenasConcluidas>=10){
 
             fim("🏆 VITÓRIA!");
             return;
         }
 
-        dezenaAtual =
-        gerarDezena();
+        novaDezena();
     }
 }
 
 function loop(){
 
     atualizarBolas();
+
     atualizarMascote();
 
     requestAnimationFrame(loop);
@@ -303,22 +385,19 @@ function loop(){
 
 loop();
 
-let tempo = 150;
+let tempo=150;
 
 function atualizarTempo(){
 
-    let m =
-    Math.floor(tempo/60);
+    let m=Math.floor(tempo/60);
+    let s=tempo%60;
 
-    let s =
-    tempo%60;
-
-    timerEl.innerText =
+    timerEl.innerText=
     String(m).padStart(2,"0")
-    + ":" +
+    +":"+
     String(s).padStart(2,"0");
 
-    if(tempo <= 0){
+    if(tempo<=0){
 
         fim("⏰ TEMPO ESGOTADO");
         return;
@@ -330,13 +409,14 @@ function atualizarTempo(){
 function fim(texto){
 
     document.getElementById("resultText")
-    .innerText = texto;
+    .innerText=texto;
 
     document.getElementById("message")
-    .style.display = "flex";
+    .style.display="flex";
 }
 
 atualizarTempo();
+
 setInterval(atualizarTempo,1000);
 
 </script>
